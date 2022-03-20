@@ -9,17 +9,28 @@ object Parser:
         case Some((_, result)) => p2(result)
         case None => None
 
-  def terminate[T](p1: Functor[T], p2: Functor[T]): Functor[T] =
+  def terminated[T](p1: Functor[T], p2: Functor[T]): Functor[T] =
     (input: T) =>
-      p1(input) match {
+      p1(input) match
         case Some((remain, result)) =>
-          p2(remain) match {
+          p2(remain) match
             case Some((remain, _)) =>
               Some(remain, result)
             case None => None
-          }
         case None => None
-      }
+
+  def delimited[T](p1: Functor[T], p2: Functor[T], p3: Functor[T]): Functor[T] =
+    (input: T) =>
+      p1(input) match
+        case Some((remain, _)) =>
+          p2(remain) match
+            case Some((remain, result)) =>
+              p3(remain) match
+                case Some((remain, _)) =>
+                  Some(remain, result)
+                case None => None
+            case None => None
+        case None => None
 
   def tag(tag: String): Functor[String] =
     (input: String) =>
