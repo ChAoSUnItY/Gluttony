@@ -1,11 +1,16 @@
 package io.github.chaosunity
 
+import scala.util.matching.Regex
+
 object Parser:
   type Functor[T] = T => Option[(T, T)]
 
+  private val HEX_DIGIT_RANGE: IndexedSeq[Char] =
+    ('a' to 'f') ++ ('A' to 'F') ++ ('0' to '9')
+
   def preceded[T](p1: Functor[T], p2: Functor[T]): Functor[T] =
     p1(_) match
-      case Some((_, result)) => p2(result)
+      case Some((remain, _)) => p2(remain)
       case None              => None
 
   def terminated[T](p1: Functor[T], p2: Functor[T]): Functor[T] =
@@ -46,14 +51,14 @@ object Parser:
 
   private def predicate0(predicate: Char => Boolean): Functor[String] =
     (input: String) =>
-      Some(input takeWhile predicate, input dropWhile predicate)
+      Some(input dropWhile predicate, input takeWhile predicate)
 
   private def predicate1(predicateFunc: Functor[String]): Functor[String] =
     predicateFunc(_) match
-      case Some((split, input)) =>
+      case Some((input, split)) =>
         split match
           case split if !split.isEmpty =>
-            Some(split, input)
+            Some(input, split)
           case _ => None
       case None => None
 
@@ -74,3 +79,9 @@ object Parser:
 
   def alphanumeric1: Functor[String] =
     predicate1(alphanumeric0)
+
+  def hexDigit0: Functor[String] =
+    predicate0(HEX_DIGIT_RANGE contains _)
+
+  def hexDigit1: Functor[String] =
+    predicate1(hexDigit0)
