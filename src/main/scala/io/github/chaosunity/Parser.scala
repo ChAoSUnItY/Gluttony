@@ -3,15 +3,6 @@ package io.github.chaosunity
 object Parser:
   type Functor[T] = T => Option[(T, T)]
 
-  private val WHITESPACE_PREDICATE: Char => Boolean =
-    c => c == ' ' || c == '\t' || c == '\r' || c == '\n'
-  private val ALPHA: Char => Boolean =
-    _.isLetter
-  private val NUMBERIC: Char => Boolean =
-    _.isDigit
-  private val ALPHA_NUMERIC: Char => Boolean =
-    _.isLetterOrDigit
-
   def preceded[T](p1: Functor[T], p2: Functor[T]): Functor[T] =
     p1(_) match
       case Some((_, result)) => p2(result)
@@ -67,19 +58,19 @@ object Parser:
       case None => None
 
   def multispace0: Functor[String] =
-    predicate0(WHITESPACE_PREDICATE)
+    predicate0(_.isWhitespace)
 
   def multispace1: Functor[String] =
     predicate1(multispace0)
 
   def alpha0: Functor[String] =
-    predicate0(ALPHA)
+    predicate0(_.isLetter)
 
   def alpha1: Functor[String] =
     predicate1(alpha0)
 
   def alphanumeric0: Functor[String] =
-    predicate0(ALPHA_NUMERIC)
+    predicate0(_.isLetterOrDigit)
 
   def alphanumeric1: Functor[String] =
     predicate1(alphanumeric0)
