@@ -57,8 +57,7 @@ object Parser:
       val matchSet = Set(opening_char, closing_char, '\\')
       var (index, level) = (0, 0)
       while (index < input.length && level >= 0)
-        val remain = input.slice(index, input.length)
-        remain indexWhere matchSet.contains match
+        input slice (index, input.length) indexWhere matchSet.contains match
           case i if i != -1 =>
             index += i
             input charAt index match
