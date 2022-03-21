@@ -49,6 +49,38 @@ object Parser:
           Some(input dropWhile (!predicate(_)), result)
         case _ => None
 
+  def take_until_unbalanced(
+      opening_char: Char,
+      closing_char: Char
+  ): Functor[String] =
+    (input: String) =>
+      val matchSet = Set(opening_char, closing_char, '\\')
+      var (index, level) = (0, 0)
+      while (index < input.length && level >= 0)
+        val remain = input.slice(index, input.length)
+        remain indexWhere matchSet.contains match
+          case i if i != -1 =>
+            index += i
+            input charAt index match
+              case `opening_char` =>
+                index += 1
+                level += 1
+              case `closing_char` =>
+                index += 1
+                level -= 1
+              case '\\' =>
+                index += 2
+          case _ => level = -2
+      level match
+        case -2 => None
+        case -1 =>
+          index -= 1
+          val (result, remain) = input splitAt index
+          Some(remain, result)
+        case 0 =>
+          Some("", input)
+        case _ => None
+
   private def predicate0(predicate: Char => Boolean): Functor[String] =
     (input: String) =>
       Some(input dropWhile predicate, input takeWhile predicate)
